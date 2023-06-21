@@ -1,0 +1,81 @@
+Preface:
+Countless have tried to take the source code from Creality and compile the provided Marlin firmware. 
+Some tried to treat the source files as if they were made in a standard environment such as "Auto Build Marlin", and demanded for platformio.ini. It was futile because the HC32 microcontroller used likely didn't have support back when Creality wrote the firmware, so something else was most certainly used instead to build the firmware, and not even they would have platformio.ini. 
+Some got past this and used Arm Keil MDK, but faced a pleathora of issues. Missing .uvprojx file, missing startup_hc32f460petb.s, all that sort. But the one bottleneck of all is the infamous glib.lib file. 
+Its confusing name with the GNOME GLib library has lead to many, Creality email support personnel included, to confuse its origin. 
+However, the glib.lib precompiled file is responsible for a quite a large amount of code which has little to do with GNOME GLib, as seen in https://gist.github.com/evnchn/af0e566be765e236655b1b0e6b4777cf. 
+With communication effort in Chinese, now the file is obtained, and compilation of firmware exactly the way Creality did it is now possible. 
+
+Step 0: Ensure that the boot disk is at C:
+Some configurations may cause your boot disk to not be C:. 
+This will cause issues later on if you are using the firmware_Release.bat file.
+ 
+REFERENCE: All over MCU_HDSC/workspace/list/firmware.build_log.htm
+
+Step 1: Create user account to have the same user folder as what was used to build the firmware
+Create user DeskCX-1900. Password does not matter. 
+
+REFERENCE: In MCU_HDSC/workspace/list/firmware.build_log.htm, references of C:\Users\DeskCX-1900
+
+Step 2: Install the correct version of Arm Keil MDK to the correct place
+Correct version: 5.36
+Executable file: MDK536.EXE
+Download link: https://armkeil.blob.core.windows.net/eval/MDK536.EXE
+SHA256 hash: f2398d43cd162b02f8a1d54553199426b64b53dff5b8b499b566b8db4459cc51
+Core destination folder: C:\Keil_v5\
+Pack destination folder: C:\Users\DeskCX-1900\AppData\Local\Arm\Packs\
+
+REFERENCE: Search "Toolchain Path" and "Collection of Component include folders" in MCU_HDSC/workspace/list/firmware.build_log.htm
+
+Step 2a: Activate Arm Keil MDK
+This step is optional. Even if access to the Arm Keil MDK is completely unavailable, the existing firmware_Release.bat may still work, though this is untested. 
+NO instructions on obtaining illegitimate license or any form of software piracy will be documented here. 
+
+
+Step 3: Install the correct version of CMSIS and HDSC pack
+For CMSIS: 
+Correct version: 5.8.0
+Pack file: ARM.CMSIS.5.8.0.pack
+Download link: https://github.com/ARM-software/CMSIS_5/releases/download/5.8.0/ARM.CMSIS.5.8.0.pack
+SHA256 hash: edc336bd30100f6d44d9224abf0a40d4970bdd1da03bbc986d03ae82ed95cec4
+
+For HDSC:
+Correct version: 1.0.2
+Pack file: HDSC.HC32F46x.1.0.2.pack
+Download link: In HC32F460_SDK.rar at https://github.com/yangfengwu45/learnHC32F460
+SHA256 hash: 496debf0ade347f2da88411a4e32ef0df0e02c8a9a79e48c930876dfe76208a5
+
+REFERENCE: Search "Collection of Component include folders" in MCU_HDSC/workspace/list/firmware.build_log.htm
+
+Step 4: Choose what to do
+Do Step 4a for the known-working way to get a 100% identical (minus the compiled date) 2.2.41 firmware
+Do Step 4b if you would like to compile the firmware in the GitHub branch WITHOUT looking through commit history, but difficult to add or remove files
+Do Step 4c if you would like to compile the firmware in the GitHub branch WITH looking through the commit history, but easy to add or remove files
+
+Step 4a: Extract and build (100% identical)
+Extract ender-hd32_sourcecode.7z which is obtained from Taobao customer service. 
+Click on Forcreality.uvprojx. Project -> Build Target
+Wait patiently for it to finish. 
+Look carefully at workspace/bin/firmware.bin and the last modified date. Is it today or far in the past? 
+Inspect differences with Ender-2pro-hw2.4.s4xx-sw2.2.41_165.bin using HxD. Are the bytes that are different only related to compilation date, and not any code or program data?
+If yes, you have successfully compiled a like-for-like firmware. 
+
+Step 4b: Extract and build (no commit history)
+Extract ender-hd32_sourcecode.7z which is obtained from Taobao customer service. 
+Clone https://github.com/CrealityOfficial/Ender-2-Pro/tree/MCU_HDSC
+Copy glib.lib from ender-hd32_sourcecode to workspace folder of the cloned repo. 
+Run firmware_Release.bat in a way that the window doesn't close immediately (run with cmd). Look for errors. 
+Wait patiently for it to finish. 
+Look carefully at the output of the firmware_Release.bat. Ensure it doesn't complain of a missing file in the linking process? 
+If there are complaints, the binary in workspace/bin/firmware.bin is just the old binary made from firmware.axf file. You may have missed glib.lib. 
+If there are no complaints, you have successfully compiled a working firmware. 
+
+Step 4c: Extract and build (w/ commit history)
+Extract ender-hd32_sourcecode.7z which is obtained from Taobao customer service. 
+Clone https://github.com/CrealityOfficial/Ender-2-Pro/tree/2ced904bca918bc50d469570d0bbf12a7a0fca18
+Copy glib.lib from ender-hd32_sourcecode to workspace folder of the cloned repo. 
+Click on Forcreality.uvprojx. Project -> Build Target
+Wait patiently for it to finish. 
+Look carefully at workspace/bin/firmware.bin and the last modified date. Is it today or far in the past? 
+Inspect differences with Ender-2pro-hw2.4.s4xx-sw2.2.41_165.bin using HxD. Are the bytes that are different only related to compilation date, and not any code or program data?
+If yes, you have successfully compiled a like-for-like firmware. 
